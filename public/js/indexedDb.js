@@ -51,3 +51,4 @@ function dataBase(){
         }
     };
 }
+window.addEventListener("online", dataBase);
