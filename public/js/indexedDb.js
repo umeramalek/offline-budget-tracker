@@ -1,54 +1,60 @@
 let db;
 
-const request = indexedDB.open("budget-tracker",1);
+const request = indexedDB.open("budget-tracker", 1);
 
 request.onupgradeneeded = function(event) {
     const db = event.target.result;
-    db.createObjectStore("pending", {autoIncrement:true})
+    db.createObjectStore("pending", { autoIncrement: true });
 };
 
-
-request.onsuccess = function(event){
+request.onsuccess = function(event) {
     db = event.target.result;
-    if (navigator.onLine){
-        dataBase()
+
+    if (navigator.onLine) {
+        checkDatabase();
     }
 };
 
-request.onerror = function(event){
-    console.log("Error : " + event.target.errorCode); 
+request.onerror = function(event) {
+    console.log("Sorry it seems we have an error. Error code:" + event.target.errorCode);
 };
 
 function saveRecord(record) {
     const transaction = db.transaction(["pending"], "readwrite");
+
     const store = transaction.objectStore("pending");
 
     store.add(record);
 };
 
-function dataBase(){
+function checkDatabase() {
     const transaction = db.transaction(["pending"], "readwrite");
+    console.log("running check database");
+
     const store = transaction.objectStore("pending");
 
     const getAll = store.getAll();
 
-    getAll.onsuccess = function(){
-        if (getAll.result.length > 0){
-            fetch("api/transaction/bulk", {
+    getAll.onsuccess = function() {
+        if (getAll.result.length > 0) {
+            fetch("/api/transaction/bulk", {
                 method: "POST",
                 body: JSON.stringify(getAll.result),
-                header: {
-                    Accept : "application/json, text/plin, */*",
+                headers: {
+                    Accept: "application/json, text/plin, */*",
                     "Content-Type": "application/json"
                 }
             })
             .then(response => response.json())
             .then(() => {
                 const transaction = db.transaction(["pending"], "readwrite");
+
                 const store = transaction.objectStore("pending");
+
                 store.clear();
-            })
+            });
         }
     };
 }
-window.addEventListener("online", dataBase);
+
+window.addEventListener("online", checkDatabase);

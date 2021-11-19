@@ -8,22 +8,25 @@ const FILES_TO_CACHE = [
     "/styles.css",
     "/js/index.js",
     "/js/indexedDB.js",
-    "/manifest.json",
+    "/manifest.webmanifest",
     "/icons/icon-192x192.png",
     "/icons/icon-512x512.png"
 ];
-// 1. install
-self.addevtListener("install", function(evt){
+
+//install
+self.addEventListener("install", function (evt) {
     evt.waitUntil(
-        caches.open(DATA_CACHE_NAME).then((cache) => cache.add("/api/transaction")));
-        evt.waitUntil(
-            caches.open(CACHE_NAME).then((cache) => cache.addAll(FILES_TO_CACHE)));
-        //forces the waiting service worker to become the active service worker - reloads the service worke  
-        self.skipWaiting();
+    caches.open(DATA_CACHE_NAME).then((cache) => cache.add("/api/transaction"))
+    );
+    
+    evt.waitUntil(
+        caches.open(CACHE_NAME).then((cache) => cache.addAll(FILES_TO_CACHE))
+    );
+    self.skipWaiting();
 });
 
-//2. Clean Up / activate - Clear the CACHE of all items not matching in CACHE_NAME (old CACHE)
-self.addevtListener("activate", function (evt) {
+//activate
+self.addEventListener("activate", function (evt) {
     evt.waitUntil(
         caches.keys().then(keyList => {
             return Promise.all(
@@ -36,34 +39,32 @@ self.addevtListener("activate", function (evt) {
             );
         })
     );
-    // Tells our new service worker to take over.
+
     self.clients.claim();
 });
 
-// fetch / Set new Cache Key
-self.addevtListener('fetch', function (evt) {
+
+//fetch
+self.addEventListener('fetch', function (evt) {
     if (evt.request.url.includes("/api/")) {
         console.log("[Service Worker] Fetch (data)", evt.request.url);
-
         evt.respondWith(
             caches.open(DATA_CACHE_NAME).then(cache => {
                 return fetch(evt.request)
                     .then(response => {
-                        // If the response was good, clone it and store it in the cache.
                         if (response.status === 200) {
                             cache.put(evt.request.url, response.clone());
                         }
                         return response;
                     })
                     .catch(err => {
-                        // Network request failed, try to get it from the cache.
                         return cache.match(evt.request);
                     });
-            }).catch(err => console.log(err))
+            })
         );
         return;
     }
-// if the request is not for the API, serve static assets using "offline-first" approach. 
+
     evt.respondWith(
         caches.open(CACHE_NAME).then(cache => {
             return cache.match(evt.request).then(response => {
