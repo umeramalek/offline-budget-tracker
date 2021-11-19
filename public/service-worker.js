@@ -13,18 +13,18 @@ const FILES_TO_CACHE = [
     "/icons/icon-512x512.png"
 ];
 // 1. install
-self.addEventListener("install", function(event){
-    event.waitUntil(
+self.addevtListener("install", function(evt){
+    evt.waitUntil(
         caches.open(DATA_CACHE_NAME).then((cache) => cache.add("/api/transaction")));
-        event.waitUntil(
+        evt.waitUntil(
             caches.open(CACHE_NAME).then((cache) => cache.addAll(FILES_TO_CACHE)));
         //forces the waiting service worker to become the active service worker - reloads the service worke  
         self.skipWaiting();
 });
 
 //2. Clean Up / activate - Clear the CACHE of all items not matching in CACHE_NAME (old CACHE)
-self.addEventListener("activate", function (event) {
-    event.waitUntil(
+self.addevtListener("activate", function (evt) {
+    evt.waitUntil(
         caches.keys().then(keyList => {
             return Promise.all(
                 keyList.map(key => {
@@ -41,7 +41,7 @@ self.addEventListener("activate", function (event) {
 });
 
 // fetch / Set new Cache Key
-self.addEventListener('fetch', function (evt) {
+self.addevtListener('fetch', function (evt) {
     if (evt.request.url.includes("/api/")) {
         console.log("[Service Worker] Fetch (data)", evt.request.url);
 
