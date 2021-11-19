@@ -22,3 +22,21 @@ self.addEventListener("install", function(event){
         self.skipWaiting();
 });
 
+//2. Clean Up / activate - Clear the CACHE of all items not matching in CACHE_NAME (old CACHE)
+self.addEventListener("activate", function (event) {
+    event.waitUntil(
+        caches.keys().then(keyList => {
+            return Promise.all(
+                keyList.map(key => {
+                    if (key !== CACHE_NAME && key !== DATA_CACHE_NAME) {
+                        console.log("Removing old cache data", key);
+                        return caches.delete(key);
+                    }
+                })
+            );
+        })
+    );
+    // Tells our new service worker to take over.
+    self.clients.claim();
+});
+
