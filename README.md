@@ -14,7 +14,7 @@ Budget Tracking app that can be used online or offline.  This app is also a Prog
  2. (note: if link hasn't been visited in a while it may take a minute for Heroku to launch the website)
 
 ## Mock Up
-![](assets/budget-tracker.png)
+![](img/budget-tracker.png)
 
 ## Built With
 
